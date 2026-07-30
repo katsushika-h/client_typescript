@@ -1,4 +1,6 @@
 import { config } from "../config.js";
+import { BadRequestError, NotFoundError, UnauthorizedError, ForbiddenError } from "./errorClasses.js";
+import { responseError } from "./jsonhelper.js";
 export const middlewareLogResponses = (req, res, next) => {
     res.on("finish", () => {
         if (res.statusCode >= 400) {
@@ -15,9 +17,40 @@ export function middlewareMetricsInc(req, res, next) {
     });
     next();
 }
+// Reset Metrics endpoint
 export function handlerResetMetrics(req, res) {
     config.fileserverHits = 0;
     res.set("Content-Type", "text/plain; charset=utf-8");
     res.status(200).send("Metrics reset");
     console.log("Metrics reset");
+}
+// Metrics endpoint
+export function handlerMetrics(req, res) {
+    res.set("Content-Type", "text/HTML; charset=utf-8");
+    res.status(200).send(`<html>
+  <body>
+    <h1>Welcome, Chirpy Admin</h1>
+    <p>Chirpy has been visited ${config.fileserverHits} times!</p>
+  </body>
+</html>`);
+}
+;
+export async function errorHandler(err, req, res, next) {
+    console.log("Error handler invoked, error is " + err.message);
+    if (err instanceof BadRequestError) {
+        responseError(res, 400, err.message);
+    }
+    else if (err instanceof NotFoundError) {
+        responseError(res, 404, err.message);
+    }
+    else if (err instanceof UnauthorizedError) {
+        responseError(res, 401, err.message);
+    }
+    else if (err instanceof ForbiddenError) {
+        responseError(res, 403, err.message);
+    }
+    else {
+        responseError(res, 500, "Internal Server Error");
+    }
+    console.error("Error has occured:", err);
 }
