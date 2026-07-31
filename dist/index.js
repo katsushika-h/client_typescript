@@ -4,12 +4,12 @@ import { valdiateChirp } from "./api/postlisten.js";
 import { readinessHandler } from "./api/readiness.js";
 const app = express();
 const PORT = 8080;
-app.use(middlewareLogResponses);
-app.use(express.json());
-app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+app.use(middlewareLogResponses);
+app.use(express.json());
+app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 // Metrics endpoint
 app.get("/admin/metrics", handlerMetrics);
 // Reset Metrics endpoint
