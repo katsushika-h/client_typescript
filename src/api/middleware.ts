@@ -20,17 +20,21 @@ export const middlewareLogResponses = (req: Request, res: Response, next: NextFu
 export function middlewareMetricsInc(req: Request, res: Response, next: NextFunction): void {
     // Increment the fileserverHits counter for each request
     res.on("finish", () => {
-        config.fileserverHits++;
+        config.api.fileserverHits++;
 });
     next();
 }
 // Reset Metrics endpoint
 export function handlerResetMetrics(req: Request, res: Response): void {
-    config.fileserverHits = 0;
+    config.api.fileserverHits = 0;
     res.set("Content-Type", "text/plain; charset=utf-8");
     res.status(200).send("Metrics reset");
     console.log("Metrics reset");
 }
+
+// export function resetAll(req: Request, res: Response): void {
+//     config.api.fileserverHits = 0;
+
 
 // Metrics endpoint
 export function handlerMetrics(req: Request, res: Response): void {
@@ -38,7 +42,7 @@ export function handlerMetrics(req: Request, res: Response): void {
     res.status(200).send(`<html>
   <body>
     <h1>Welcome, Chirpy Admin</h1>
-    <p>Chirpy has been visited ${config.fileserverHits} times!</p>
+    <p>Chirpy has been visited ${config.api.fileserverHits} times!</p>
   </body>
 </html>`);
 };

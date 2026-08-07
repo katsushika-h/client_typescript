@@ -4,6 +4,9 @@ import {middlewareLogResponses, errorHandler, middlewareMetricsInc, handlerReset
 import {valdiateChirp} from "./api/postlisten.js";
 import {readinessHandler} from "./api/readiness.js";
 import {config} from "./config.js";
+import {addUserByEmail, loginUser} from "./api/users.js";
+import {resetAll} from "./api/reset.js";
+import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
 
 const app = express();
 const PORT = 8080;
@@ -19,8 +22,14 @@ app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 // Metrics endpoint
 app.get("/admin/metrics", handlerMetrics);
 // Reset Metrics endpoint
-app.post("/admin/reset",  handlerResetMetrics);
+app.post("/admin/reset",  resetAll, handlerResetMetrics);
 // Health check endpoint
 app.get("/api/healthz", readinessHandler);
 app.post("/api/validate_chirp", valdiateChirp);
+app.post("/api/users", addUserByEmail);
+app.post("/api/chirps", createChirp);
+app.get("/api/chirps", getChirps);
+app.get("/api/chirps/:chirpId", getChirpById);
+app.post("/api/login", loginUser);
+
 app.use(errorHandler);

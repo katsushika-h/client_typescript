@@ -2,6 +2,9 @@ import express from "express";
 import { middlewareLogResponses, errorHandler, middlewareMetricsInc, handlerResetMetrics, handlerMetrics } from "./api/middleware.js";
 import { valdiateChirp } from "./api/postlisten.js";
 import { readinessHandler } from "./api/readiness.js";
+import { addUserByEmail } from "./api/users.js";
+import { resetAll } from "./api/reset.js";
+import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
 const app = express();
 const PORT = 8080;
 app.listen(PORT, () => {
@@ -13,8 +16,12 @@ app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 // Metrics endpoint
 app.get("/admin/metrics", handlerMetrics);
 // Reset Metrics endpoint
-app.post("/admin/reset", handlerResetMetrics);
+app.post("/admin/reset", resetAll, handlerResetMetrics);
 // Health check endpoint
 app.get("/api/healthz", readinessHandler);
 app.post("/api/validate_chirp", valdiateChirp);
+app.post("/api/users", addUserByEmail);
+app.post("/api/chirps", createChirp);
+app.get("/api/chirps", getChirps);
+app.get("/api/chirps/:chirpId", getChirpById);
 app.use(errorHandler);
