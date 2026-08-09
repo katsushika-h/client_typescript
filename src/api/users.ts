@@ -69,13 +69,13 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         return;
     }
     console.log("User logged in:", user.email);
-    const user:sanitizedUser = {
-        id: user.id,
-        email: user.email
+    const cleanedUser:sanitizedUser = {
+        id: user.id, //change user to not jsonbody
+        email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
 
     };
  
-    js.responseJSON(res, 200, user);
+    js.responseJSON(res, 200, cleanedUser);
 }
