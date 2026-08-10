@@ -7,9 +7,17 @@ import {config} from "./config.js";
 import {addUserByEmail, loginUser} from "./api/users.js";
 import {resetAll} from "./api/reset.js";
 import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
+import postgres from "postgres";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+
 
 const app = express();
 const PORT = 8080;
+
+// migrate first
+const migrationClient = postgres(config.db.url, { max: 1 });
+await migrate(drizzle(migrationClient), config.db.migrationConfig);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

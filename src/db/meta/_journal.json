@@ -15,6 +15,13 @@
       "when": 1785986849261,
       "tag": "0001_funny_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786247743517,
+      "tag": "0002_furry_timeslip",
+      "breakpoints": true
     }
   ]
 }
