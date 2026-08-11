@@ -4,27 +4,30 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "npx tsc && node dist/index.js",
     "migrate": "drizzle-kit migrate",
-    "generate": "drizzle-kit generate"
+    "generate": "drizzle-kit generate",
+    "test": "vitest --run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.3",
-    "drizzle-kit": "^0.31.10",
-    "typescript": "^6.0.3"
+    "drizzle-kit": "^0.18.1",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.7"
   },
   "dependencies": {
     "argon": "^2.0.21",
     "argon2": "^0.45.1",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "postgres": "^3.4.9",
     "undici-types": "^7.24.6"
   },

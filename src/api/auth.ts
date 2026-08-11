@@ -1,5 +1,10 @@
 import {hash, verify} from "argon2";
 import * as error from "./errorClasses.js"; 
+import jwt from "jsonwebtoken";
+import type { JwtPayload } from "jsonwebtoken"; 
+
+type payload = Pick<JwtPayload, 'iss' | 'sub' | 'iat' | 'exp'>;
+
 
 export async function hashPassword(password: string): Promise<string> {
     try {
@@ -17,5 +22,26 @@ export async function checkPassword(password: string, hashedPassword: string): P
     } catch (err) {
         console.error("Error verifying password:", err);
         throw new error.UnauthorizedError("Failed to verify password");
+    }
+}
+
+export function generateJWT(userID: string, expiresIn: number, secret: string): string{
+    const payload: payload = {
+        iss: "chirpy",
+        sub: userID,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + expiresIn
+    };
+    return jwt.sign(payload, secret, { algorithm: "HS256" });
+}
+
+export function validateJWT(tokenString: string, secret: string)  {
+    try {
+        const decoded = jwt.verify(tokenString, secret) as payload;
+        return decoded.sub;
+        
+    } catch (err) {
+        console.error("Error validating JWT:", err);
+        throw new error.UnauthorizedError("Invalid or expired token");
     }
 }
