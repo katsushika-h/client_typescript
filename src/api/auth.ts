@@ -1,47 +1,43 @@
-import {hash, verify} from "argon2";
-import * as error from "./errorClasses.js"; 
-import jwt from "jsonwebtoken";
-import type { JwtPayload } from "jsonwebtoken"; 
+import { Request, Response } from "express";
+import * as js from "./jsonhelper.js";
+import { lookupUser } from "../db/queries/users.js";
+import { checkPassword, validateJWT } from "../auth.js";
+import {publicUser} from "./users.js"
 
-type payload = Pick<JwtPayload, 'iss' | 'sub' | 'iat' | 'exp'>;
+export type loginRequest = {
+    email: string;
+    password: string;
+    expiresInSeconds?: number;
+}
 
-
-export async function hashPassword(password: string): Promise<string> {
-    try {
-        const hashedPassword = await hash(password);
-        return hashedPassword;
-    } catch (err) {
-        console.error("Error hashing password:", err);
-        throw new Error("Failed to hash password");
+export async function loginUser(req: Request, res: Response): Promise<void> {
+    console.log("Received login request:", req.body);
+    //error handling for missing email in request body
+    if (!req.body || !req.body.email) {
+        js.responseError(res, 400, "Missing email in request body");
+        return;
+    } else if (!req.body || !req.body.password) {
+        js.responseError(res, 400, "Missing password in request body");
+        return;
     }
-}
 
-export async function checkPassword(password: string, hashedPassword: string): Promise<boolean> {
-    try {
-        return await verify(hashedPassword, password);
-    } catch (err) {
-        console.error("Error verifying password:", err);
-        throw new error.UnauthorizedError("Failed to verify password");
+    const {email, password, expiresInSeconds = 3600}: loginRequest = req.body;
+    const effectiveExpiration = Math.min(expiresInSeconds, 3600)
+
+    const user = await lookupUser(email);
+    if (!user) {
+        js.responseError(res, 400, "User doesn't exist");
+        return;
     }
-}
 
-export function generateJWT(userID: string, expiresIn: number, secret: string): string{
-    const payload: payload = {
-        iss: "chirpy",
-        sub: userID,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + expiresIn
-    };
-    return jwt.sign(payload, secret, { algorithm: "HS256" });
-}
+    const isMatch = await checkPassword(password, user.hashedPassword);
 
-export function validateJWT(tokenString: string, secret: string)  {
-    try {
-        const decoded = jwt.verify(tokenString, secret) as payload;
-        return decoded.sub;
-        
-    } catch (err) {
-        console.error("Error validating JWT:", err);
-        throw new error.UnauthorizedError("Invalid or expired token");
+    if (!isMatch) {
+        js.responseError(res, 401, "Invalid email or password");
+        return;
     }
-}
+
+    console.log("User logged in:", user.email);
+
+    js.responseJSON(res, 200, publicUser(user));
+};

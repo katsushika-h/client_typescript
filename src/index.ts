@@ -4,7 +4,8 @@ import {middlewareLogResponses, errorHandler, middlewareMetricsInc, handlerReset
 import {valdiateChirp} from "./api/postlisten.js";
 import {readinessHandler} from "./api/readiness.js";
 import {config} from "./config.js";
-import {addUserByEmail, loginUser} from "./api/users.js";
+import {addUserByEmail } from "./api/users.js";
+import { loginUser } from "./api/auth.js";
 import {resetAll} from "./api/reset.js";
 import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
 import postgres from "postgres";
