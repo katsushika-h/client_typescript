@@ -11,7 +11,7 @@ import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
-
+import {refreshAccessToken} from "./api/refresh.js" 
 
 const app = express();
 const PORT = 8080;
@@ -34,11 +34,15 @@ app.get("/admin/metrics", handlerMetrics);
 app.post("/admin/reset",  resetAll, handlerResetMetrics);
 // Health check endpoint
 app.get("/api/healthz", readinessHandler);
+
+//chirp endpoints
 app.post("/api/validate_chirp", valdiateChirp);
-app.post("/api/users", addUserByEmail);
 app.post("/api/chirps", createChirp);
 app.get("/api/chirps", getChirps);
 app.get("/api/chirps/:chirpId", getChirpById);
+//user endpoints
+app.post("/api/users", addUserByEmail);
 app.post("/api/login", loginUser);
-
+//auth endpoints
+app.post("/api/refresh", refreshAccessToken)
 app.use(errorHandler);

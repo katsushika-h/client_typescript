@@ -13,6 +13,7 @@ export const config = {
     api: {
         fileserverHits: 0,
         platform: envOrThrow("PLATFORM"),
+        secret: envOrThrow("SECRET")
     },
     db: {
         url: envOrThrow("DB_URL"),

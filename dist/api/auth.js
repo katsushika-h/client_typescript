@@ -1,21 +1,46 @@
-import { hash, verify } from "argon2";
-import * as error from "./errorClasses.js";
-export async function hashPassword(password) {
-    try {
-        const hashedPassword = await hash(password);
-        return hashedPassword;
+import * as js from "./jsonhelper.js";
+import { lookupUser } from "../db/queries/users.js";
+import { addRefreshToken } from "../db/queries/refresh_tokens.js";
+import { checkPassword, generateJWT, makeRefreshToken } from "../auth.js";
+import { config } from "../config.js";
+export async function loginUser(req, res) {
+    console.log("Received login request:", req.body);
+    //error handling for missing email in request body
+    if (!req.body || !req.body.email) {
+        js.responseError(res, 400, "Missing email in request body");
+        return;
     }
-    catch (err) {
-        console.error("Error hashing password:", err);
-        throw new Error("Failed to hash password");
+    else if (!req.body || !req.body.password) {
+        js.responseError(res, 400, "Missing password in request body");
+        return;
     }
+    const { email, password, expiresInSeconds = 3600 } = req.body;
+    const user = await lookupUser(email);
+    if (!user) {
+        js.responseError(res, 400, "User doesn't exist");
+        return;
+    }
+    const isMatch = await checkPassword(password, user.hashedPassword);
+    if (!isMatch) {
+        js.responseError(res, 401, "Invalid email or password");
+        return;
+    }
+    const jwtToken = generateJWT(user.id, Math.min(expiresInSeconds, 3600), config.api.secret);
+    const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60);
+    const refreshToken = await addRefreshToken({
+        token: makeRefreshToken(),
+        user_id: user.id,
+        expiresAt: expiryDate
+    });
+    console.log("Refresh token created: " + refreshToken);
+    console.log("User logged in:", user.email);
+    js.responseJSON(res, 200, {
+        "id": user.id,
+        "createdAt": user.createdAt,
+        "updatedAt": user.updatedAt,
+        "email": user.email,
+        "token": jwtToken,
+        "refreshToken": refreshToken.token
+    });
 }
-export async function checkPassword(password, hashedPassword) {
-    try {
-        return await verify(hashedPassword, password);
-    }
-    catch (err) {
-        console.error("Error verifying password:", err);
-        throw new error.UnauthorizedError("Failed to verify password");
-    }
-}
+;

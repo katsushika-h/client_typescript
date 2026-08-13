@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import * as js from "./jsonhelper.js";
 import { lookupUser } from "../db/queries/users.js";
-import { checkPassword, validateJWT } from "../auth.js";
-import {publicUser} from "./users.js"
+import { addRefreshToken } from "../db/queries/refresh_tokens.js";
+import { checkPassword, validateJWT, generateJWT, makeRefreshToken } from "../auth.js";
+import { config } from "../config.js"
+
 
 export type loginRequest = {
     email: string;
@@ -22,7 +24,6 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     }
 
     const {email, password, expiresInSeconds = 3600}: loginRequest = req.body;
-    const effectiveExpiration = Math.min(expiresInSeconds, 3600)
 
     const user = await lookupUser(email);
     if (!user) {
@@ -37,7 +38,24 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         return;
     }
 
+
+    const jwtToken = generateJWT(user.id, Math.min(expiresInSeconds, 3600), config.api.secret )
+    const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60)
+    const refreshToken = await addRefreshToken({
+        token : makeRefreshToken(),
+        user_id : user.id,
+        expiresAt: expiryDate
+    });
+
+    console.log("Refresh token created: " + refreshToken)
     console.log("User logged in:", user.email);
 
-    js.responseJSON(res, 200, publicUser(user));
-};
+    js.responseJSON(res, 200, {
+        "id": user.id,
+        "createdAt": user.createdAt,
+        "updatedAt": user.updatedAt,
+        "email": user.email,
+        "token": jwtToken,
+        "refreshToken": refreshToken.token
+    })
+ };
