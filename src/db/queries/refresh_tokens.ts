@@ -16,7 +16,12 @@ export async function getRefreshToken(token: string){
 }
 
 export async function getUserFromRefreshToken(token: string): Promise<string>{
-    const [result] = await db.select().from(refresh_tokens).where(eq(refresh_tokens, token))
+    const [result] = await db.select().from(refresh_tokens).where(eq(refresh_tokens.token, token))
     const userID = result.user_id
     return userID
+}
+
+export async function deleteToken(token: string): Promise<void>{
+    const [result] = await db.delete(refresh_tokens).where(eq(refresh_tokens.token, token))
+    return;
 }

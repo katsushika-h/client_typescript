@@ -13,7 +13,11 @@ export async function getRefreshToken(token) {
     return result;
 }
 export async function getUserFromRefreshToken(token) {
-    const [result] = await db.select().from(refresh_tokens).where(eq(refresh_tokens, token));
+    const [result] = await db.select().from(refresh_tokens).where(eq(refresh_tokens.token, token));
     const userID = result.user_id;
     return userID;
+}
+export async function deleteToken(token) {
+    const [result] = await db.delete(refresh_tokens).where(eq(refresh_tokens.token, token));
+    return;
 }

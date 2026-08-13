@@ -1,5 +1,12 @@
-import { makeRefreshToken } from "../auth.js";
-import { describe, it, expect } from "vitest";
+import { hashPassword, makeRefreshToken } from "../auth.js";
+import { describe, it, expect, beforeAll } from "vitest";
+import { createUser } from "../db/queries/users.js";
+beforeAll(async () => {
+    createUser({
+        email: "katsushika.hokusai@gmail.com",
+        hashedPassword: await hashPassword("password")
+    });
+});
 describe("Testing token refreshing", () => {
     it("Generates a token", () => {
         console.log("testing token generation");

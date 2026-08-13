@@ -10,7 +10,7 @@ import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { refreshAccessToken } from "./api/refresh.js";
+import { refreshAccessToken, revokeRefreshToken } from "./api/refresh.js";
 const app = express();
 const PORT = 8080;
 // migrate first
@@ -38,4 +38,5 @@ app.post("/api/users", addUserByEmail);
 app.post("/api/login", loginUser);
 //auth endpoints
 app.post("/api/refresh", refreshAccessToken);
+app.post("/api/revoke", revokeRefreshToken);
 app.use(errorHandler);
