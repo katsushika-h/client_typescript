@@ -1,6 +1,6 @@
 import * as js from "./jsonhelper.js";
-import * as err from "./errorClasses.js";
-import { addChirp, allChirps, dbGetChirpById } from "../db/queries/chirps.js";
+import * as error from "./errorClasses.js";
+import { addChirp, allChirps, dbGetChirpById, deleteChirpById } from "../db/queries/chirps.js";
 import { config } from "../config.js";
 import { getBearerToken, validateJWT } from "../auth.js";
 export async function createChirp(req, res) {
@@ -14,7 +14,7 @@ export async function createChirp(req, res) {
     console.log("Decoded token = " + decodedSub);
     console.log("Chirp body userid = " + chirpBody.userId);
     if (chirpBody.body.length > maxChirpLength) {
-        throw new err.BadRequestError(`Chirp is too long. Max length is ${maxChirpLength}`);
+        throw new error.BadRequestError(`Chirp is too long. Max length is ${maxChirpLength}`);
     }
     // Filter the request body for the specified words
     const filtered = chirpBody.body.replace(re, "****");
@@ -31,11 +31,27 @@ export async function getChirps(req, res) {
 export async function getChirpById(req, res) {
     const chirpId = req.params.chirpId;
     if (!chirpId) {
-        throw new err.BadRequestError("Missing chirpId parameter");
+        throw new error.BadRequestError("Missing chirpId parameter");
     }
     const chirps = await dbGetChirpById(chirpId);
     if (!chirps) {
-        throw new err.NotFoundError(`No chirp found with id: ${chirpId}`);
+        throw new error.NotFoundError(`No chirp found with id: ${chirpId}`);
     }
     js.responseJSON(res, 200, chirps);
+}
+export async function deleteChirp(req, res) {
+    console.log("Received delete request for: " + req.params.chirpId);
+    const id = req.params.chirpId;
+    if (!id) {
+        throw new error.NotFoundError("Chirp not found");
+    }
+    const chirp = await dbGetChirpById(id);
+    const authToken = getBearerToken(req);
+    const userToken = validateJWT(authToken, config.api.secret);
+    if (chirp.userId !== userToken) {
+        throw new error.ForbiddenError("Not authorized to delete this chirp");
+    }
+    console.log("Authenticated. Deleting chirp by id: " + chirp.id);
+    const deletedChirp = deleteChirpById(chirp.id);
+    res.status(204).send();
 }

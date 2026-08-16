@@ -8,22 +8,24 @@ import { Request, Response } from "express";
 import * as error from "./errorClasses.js"
 import { generateJWT, getBearerToken } from "../auth.js";
 import { config } from "../config.js";
+import * as js from "./jsonhelper.js"
 
-export async function refreshAccessToken (req: Request){
+export async function refreshAccessToken (req: Request, res: Response){
     const getToken = getBearerToken(req)
     console.log("getting user id from bearer token " + getToken )
     const userId = await getUserFromRefreshToken(getToken)
     console.log("Gotten userid " + userId)
-    if (!userId){throw new error.UnauthorizedError("Invalid token")}
-
+    if (userId === undefined){throw new error.UnauthorizedError("Invalid token")}
+    
     console.log("Refreshing token for user " + userId)
 
-    const jwtToken = generateJWT(userId, 3600, config.api.secret )
+    const jwtToken = generateJWT(userId.user_id, 3600, config.api.secret )
 
-    return {token: jwtToken}
+    js.responseJSON(res, 200, {token: jwtToken})
 }
 
-export async function revokeRefreshToken(req: Request){
+export async function revokeRefreshToken(req: Request, res: Response){
     const refreshToken = getBearerToken(req)
     await deleteToken(refreshToken)
+    res.sendStatus(204) ;
 };

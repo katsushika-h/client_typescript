@@ -4,10 +4,10 @@ import {middlewareLogResponses, errorHandler, middlewareMetricsInc, handlerReset
 import {valdiateChirp} from "./api/postlisten.js";
 import {readinessHandler} from "./api/readiness.js";
 import {config} from "./config.js";
-import {addUserByEmail } from "./api/users.js";
+import {addUserByEmail, updateDetails, upgradeUser } from "./api/users.js";
 import { loginUser } from "./api/auth.js";
 import {resetAll} from "./api/reset.js";
-import { createChirp, getChirps, getChirpById } from "./api/chirps.js";
+import { createChirp, getChirps, getChirpById, deleteChirp } from "./api/chirps.js";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -40,10 +40,16 @@ app.post("/api/validate_chirp", valdiateChirp);
 app.post("/api/chirps", createChirp);
 app.get("/api/chirps", getChirps);
 app.get("/api/chirps/:chirpId", getChirpById);
+app.delete("/api/chirps/:chirpId", deleteChirp)
 //user endpoints
 app.post("/api/users", addUserByEmail);
 app.post("/api/login", loginUser);
+app.put("/api/users", updateDetails)
 //auth endpoints
 app.post("/api/refresh", refreshAccessToken)
 app.post("/api/revoke", revokeRefreshToken)
+
+//webhooks
+app.post("/api/polka/webhooks", upgradeUser)
+
 app.use(errorHandler);
