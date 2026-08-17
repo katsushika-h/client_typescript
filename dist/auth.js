@@ -58,3 +58,14 @@ export function makeRefreshToken() {
     const token = randomBytes(32).toString("hex");
     return token;
 }
+export function getAPIKey(req) {
+    const authHeader = req.get("Authorization");
+    if (!authHeader) {
+        throw new error.UnauthorizedError("Missing Authorization header");
+    }
+    const [scheme, apiKey] = authHeader.split(" ");
+    if (scheme !== "ApiKey" || !apiKey) {
+        throw new error.UnauthorizedError("Missing API Key");
+    }
+    return apiKey;
+}

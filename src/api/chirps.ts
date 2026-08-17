@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import * as js from "./jsonhelper.js";  
 import * as error from "./errorClasses.js";
-import { addChirp, allChirps, dbGetChirpById, deleteChirpById } from "../db/queries/chirps.js";
+import { addChirp, allChirps, dbGetChirpById, deleteChirpById, getChirpByUserId } from "../db/queries/chirps.js";
 import { config } from "../config.js";
 import { getBearerToken, validateJWT } from "../auth.js";
+import { NewChirp } from "../db/schema.js";
 
 export async function createChirp(req: Request, res: Response): Promise<void> {
     const maxChirpLength = 140;
@@ -35,11 +36,24 @@ export async function createChirp(req: Request, res: Response): Promise<void> {
 
 
 export async function getChirps(req: Request, res: Response): Promise<void> {
+    const authorId = req.query.authorId as string
+    const sort = req.query.sort === "desc" ? "desc" : "asc"
+    // Fetches chirp from server in ascending order if query is not provided.
 
-    // Fetches chirp from server in ascending order.
-        const chirps = await allChirps();
-        js.responseJSON(res, 200, chirps);
+   const chirps = authorId ? await getChirpByUserId(authorId) : await allChirps();
+
+    if (!chirps){
+        throw new error.NotFoundError("AuthorID not found")
     }
+    // sorting
+    const sorted = chirps.sort((a,b) => 
+        sort === "asc" 
+        ? a.createdAt.getTime() - b.createdAt.getTime()
+        : b.createdAt.getTime() - a.createdAt.getTime()
+    )
+
+    js.responseJSON(res, 200, sorted)
+}
 
 export async function getChirpById(req: Request, res: Response): Promise<void> {
     const chirpId = req.params.chirpId as string;

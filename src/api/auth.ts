@@ -4,12 +4,18 @@ import { lookupUser } from "../db/queries/users.js";
 import { addRefreshToken } from "../db/queries/refresh_tokens.js";
 import { checkPassword, validateJWT, generateJWT, makeRefreshToken } from "../auth.js";
 import { config } from "../config.js"
-import { publicUser } from "./users.js";
+import { publicUser, UserResponse } from "./users.js";
+import { R } from "vitest/dist/chunks/environment.d.cL3nLXbE.js";
 
 export type loginRequest = {
     email: string;
     password: string;
     expiresInSeconds?: number;
+}
+
+export type loginResponse = UserResponse & {
+    token: string,
+    refreshToken: string
 }
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
@@ -50,5 +56,13 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     console.log("Refresh token created: " + refreshToken)
     console.log("User logged in:", user.email);
 
-    js.responseJSON(res, 200, publicUser(await lookupUser(email)))
+    js.responseJSON(res, 200, {
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        email: user.email,
+        isChirpyRed: user.isChirpyRed,
+        token: jwtToken,
+        refreshToken: refreshToken.token
+    } satisfies loginResponse)
  };

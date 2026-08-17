@@ -1,6 +1,6 @@
 import * as js from "./jsonhelper.js";
 import * as error from "./errorClasses.js";
-import { addChirp, allChirps, dbGetChirpById, deleteChirpById } from "../db/queries/chirps.js";
+import { addChirp, allChirps, dbGetChirpById, deleteChirpById, getChirpByUserId } from "../db/queries/chirps.js";
 import { config } from "../config.js";
 import { getBearerToken, validateJWT } from "../auth.js";
 export async function createChirp(req, res) {
@@ -18,15 +18,23 @@ export async function createChirp(req, res) {
     }
     // Filter the request body for the specified words
     const filtered = chirpBody.body.replace(re, "****");
-    // js.responseJSON(res, 200, { "cleanedBody" : filtered });
     const createdChirp = await addChirp({ body: filtered, userId: decodedSub });
     js.responseJSON(res, 201, createdChirp);
 }
 ;
 export async function getChirps(req, res) {
-    // Fetches chirp from server in ascending order.
-    const chirps = await allChirps();
-    js.responseJSON(res, 200, chirps);
+    const authorId = req.query.authorId;
+    const sort = req.query.sort === "desc" ? "desc" : "asc";
+    // Fetches chirp from server in ascending order if query is not provided.
+    const chirps = authorId ? await getChirpByUserId(authorId) : await allChirps();
+    if (!chirps) {
+        throw new error.NotFoundError("AuthorID not found");
+    }
+    // sorting
+    const sorted = chirps.sort((a, b) => sort === "asc"
+        ? a.createdAt.getTime() - b.createdAt.getTime()
+        : b.createdAt.getTime() - a.createdAt.getTime());
+    js.responseJSON(res, 200, sorted);
 }
 export async function getChirpById(req, res) {
     const chirpId = req.params.chirpId;
@@ -52,6 +60,6 @@ export async function deleteChirp(req, res) {
         throw new error.ForbiddenError("Not authorized to delete this chirp");
     }
     console.log("Authenticated. Deleting chirp by id: " + chirp.id);
-    const deletedChirp = deleteChirpById(chirp.id);
+    const deletedChirp = await deleteChirpById(chirp.id);
     res.status(204).send();
 }

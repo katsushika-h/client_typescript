@@ -3,7 +3,6 @@ import { lookupUser } from "../db/queries/users.js";
 import { addRefreshToken } from "../db/queries/refresh_tokens.js";
 import { checkPassword, generateJWT, makeRefreshToken } from "../auth.js";
 import { config } from "../config.js";
-import { publicUser } from "./users.js";
 export async function loginUser(req, res) {
     console.log("Received login request:", req.body);
     //error handling for missing email in request body
@@ -35,6 +34,14 @@ export async function loginUser(req, res) {
     });
     console.log("Refresh token created: " + refreshToken);
     console.log("User logged in:", user.email);
-    js.responseJSON(res, 200, publicUser(await lookupUser(email)));
+    js.responseJSON(res, 200, {
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        email: user.email,
+        isChirpyRed: user.isChirpyRed,
+        token: jwtToken,
+        refreshToken: refreshToken.token
+    });
 }
 ;

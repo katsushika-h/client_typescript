@@ -1,7 +1,7 @@
 import { createUser, updateUser, lookupUserById, upgradeUserByID } from "../db/queries/users.js";
 import * as js from "./jsonhelper.js";
 import * as error from "./errorClasses.js";
-import { hashPassword, getBearerToken, validateJWT } from "../auth.js";
+import { hashPassword, getBearerToken, validateJWT, getAPIKey } from "../auth.js";
 import { config } from "../config.js";
 // removes password from user object 
 export function publicUser(user) {
@@ -55,6 +55,10 @@ export async function updateDetails(req, res) {
     js.responseJSON(res, 200, publicUser(updatedUser));
 }
 export async function upgradeUser(req, res) {
+    if (getAPIKey(req) != config.api.polkaKey) {
+        throw new error.UnauthorizedError("Invalid API key");
+    }
+    ;
     console.log("/api/polka/webhooks accessed");
     if (req.body.event !== "user.upgraded") {
         res.status(204).send();

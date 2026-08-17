@@ -2,11 +2,11 @@ import {createUser, lookupUser, updateUser, lookupUserById, upgradeUserByID} fro
 import { Request, Response } from "express";
 import * as js from "./jsonhelper.js";
 import * as error from "./errorClasses.js"
-import { hashPassword , checkPassword, getBearerToken, validateJWT } from "../auth.js";
+import { hashPassword , checkPassword, getBearerToken, validateJWT, getAPIKey } from "../auth.js";
 import { User } from "../db/schema.js";
 import { config } from "../config.js";
-import { getUserFromRefreshToken } from "../db/queries/refresh_tokens.js";
 
+export type UserResponse = Omit<User, "hashedPassword">;
 
 export type UserCredentials = {
     email: string;
@@ -75,6 +75,10 @@ export async function updateDetails(req: Request, res: Response): Promise<void>{
 }
 
 export async function upgradeUser(req: Request, res: Response): Promise<void>{
+    if (getAPIKey(req) != config.api.polkaKey){
+        throw new error.UnauthorizedError("Invalid API key")
+    };
+
     console.log("/api/polka/webhooks accessed")
     if (req.body.event !== "user.upgraded"){
         res.status(204).send();

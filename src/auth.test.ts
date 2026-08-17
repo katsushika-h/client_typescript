@@ -1,4 +1,4 @@
-import { generateJWT, validateJWT, hashPassword, checkPassword, getBearerToken } from "./auth.js";
+import { generateJWT, validateJWT, hashPassword, checkPassword, getBearerToken, getAPIKey } from "./auth.js";
 import { describe, it, expect, beforeAll } from "vitest";
 import { Request, Response} from "express";
 
@@ -57,6 +57,13 @@ describe("Auth Functions", () => {
         } as Request;
         expect(getBearerToken(req)).toBe("myToken123");
     });
+
+    it("should return the api Key from a valid Authorizaiton header", () => { 
+        const req = {
+            get: (header: string) => "Bearer myKey123"
+        } as Request;
+        expect (getAPIKey(req)).toBe("myKey123")
+    })
 });
 
 //password hashing and verification tests
