@@ -54,15 +54,15 @@ describe("Auth Functions", () => {
     it("should return the bearer token from a valid Authorization header", () => {
         const req = {
             get: (header: string)=>"Bearer myToken123"
-        } as Request;
-        expect(getBearerToken(req)).toBe("myToken123");
+        } as Request
+        expect(getBearerToken(req)).toBe("myToken123")
     });
 
-    it("should return the api Key from a valid Authorizaiton header", () => { 
+    it("should return the api Key from a valid Authorizaiton header", () => {
         const req = {
-            get: (header: string) => "Bearer myKey123"
-        } as Request;
-        expect (getAPIKey(req)).toBe("myKey123")
+            get: (header: string) => "ApiKey myKey123"
+        } as Request
+        expect(getAPIKey(req)).toBe("myKey123")
     })
 });
 
@@ -72,12 +72,12 @@ describe("password hashing", ()=>{
     const password2 = "test-password2";
     let hash1: string;
     let hash2: string;
-    
+
     beforeAll(async ()=>{
         hash1 = await hashPassword(password);
         hash2 = await hashPassword(password2);
     });
-    
+
     it("should hash a password", async ()=>{
         expect(hash1).toBeTypeOf("string");
         expect(hash2).toBeTypeOf("string");
@@ -91,5 +91,5 @@ describe("password hashing", ()=>{
     it("should not verify a password against a different hash", async ()=>{
         const isValid2 = await checkPassword(password, hash2);
         expect(isValid2).toBe(false);
-    }); 
+    });
 });
